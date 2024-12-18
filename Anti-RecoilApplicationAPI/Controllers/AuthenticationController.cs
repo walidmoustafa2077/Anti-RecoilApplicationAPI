@@ -12,12 +12,14 @@ namespace Anti_RecoilApplicationAPI.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IAuthentication _authenticationService;
+        private readonly IUserService _userService;
         private readonly IWeaponService _weaponService;
 
-        public AuthenticationController(IAuthentication authenticationService, IWeaponService weaponService)
+        public AuthenticationController(IAuthentication authenticationService, IUserService userService,IWeaponService weaponService)
         {
             _authenticationService = authenticationService;
             _weaponService = weaponService;
+            _userService = userService;
         }
 
         // Register User

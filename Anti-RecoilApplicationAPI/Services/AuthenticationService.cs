@@ -1,6 +1,7 @@
 ﻿using Anti_RecoilApplicationAPI.Data;
 using Anti_RecoilApplicationAPI.DTOs;
 using Anti_RecoilApplicationAPI.Enums;
+using Anti_RecoilApplicationAPI.Helpers;
 using Anti_RecoilApplicationAPI.Models;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +36,7 @@ namespace Anti_RecoilApplicationAPI.Services
             if (await _context.Users.AnyAsync(u => u.Username == username || u.Email == email))
                 throw new InvalidOperationException("Username or email is already taken.");
 
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+            var hashedPassword = PasswordHelper.HashPassword(password);
 
             var newUser = new User
             {
@@ -63,7 +64,7 @@ namespace Anti_RecoilApplicationAPI.Services
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username == usernameOrEmail || u.Email == usernameOrEmail);
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            if (user == null || !PasswordHelper.VerifyPassword(password, user.PasswordHash))
                 throw new UnauthorizedAccessException("Invalid username or password.");
 
             // You can generate a JWT token here if needed (or any other token logic).

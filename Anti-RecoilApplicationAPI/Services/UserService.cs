@@ -1,5 +1,6 @@
 ﻿using Anti_RecoilApplicationAPI.Data;
 using Anti_RecoilApplicationAPI.DTOs;
+using Anti_RecoilApplicationAPI.Helpers;
 using Anti_RecoilApplicationAPI.Models;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -17,14 +18,9 @@ namespace Anti_RecoilApplicationAPI.Services
 
         public async Task<UserDTO> CreateUserAsync(User user)
         {
-            // Check if the username or email already exists
-            if (await _context.Users.AnyAsync(u => u.Username == user.Username || u.Email == user.Email))
-            {
-                throw new InvalidOperationException("Username or email is already taken.");
-            }
 
             // Map the DTO to the User model
-            user.PasswordHash = HashPassword(user.PasswordHash); // Make sure to implement this
+            user.PasswordHash = PasswordHelper.HashPassword(user.PasswordHash); // Make sure to implement this
 
             // Add the user to the database
             _context.Users.Add(user);
@@ -32,6 +28,7 @@ namespace Anti_RecoilApplicationAPI.Services
 
             return user.Adapt<UserDTO>();
         }
+
 
         public async Task<UserDTO> UpdateUserAsync(int userId, UserDTO userDto)
         {
@@ -72,7 +69,7 @@ namespace Anti_RecoilApplicationAPI.Services
             return user == null ? new UserDTO() : user.Adapt<UserDTO>();
         }
 
-        public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserDTO>> GetAllUserDTOsAsync()
         {
             var users = await _context.Users.ToListAsync();
 
@@ -80,12 +77,14 @@ namespace Anti_RecoilApplicationAPI.Services
             return users.Adapt<IEnumerable<UserDTO>>();
         }
 
-        private string HashPassword(string password)
-        {
-            // Example using BCrypt for password hashing
-            return BCrypt.Net.BCrypt.HashPassword(password);
-        }
 
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            var users = await _context.Users.ToListAsync();
+
+
+            return users;
+        }
 
     }
 }

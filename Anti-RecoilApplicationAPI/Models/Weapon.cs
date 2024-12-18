@@ -11,7 +11,7 @@ namespace Anti_RecoilApplicationAPI.Models
         public string WeaponName { get; set; } = string.Empty;
 
         [Required]
-        public float FireRate { get; set; }
+        public float Sensitivity { get; set; }
 
         [Required]
         public string Pattern { get; set; } = string.Empty; // Store pattern as a comma-separated string

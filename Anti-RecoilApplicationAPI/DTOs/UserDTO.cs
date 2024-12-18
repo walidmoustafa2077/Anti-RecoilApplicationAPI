@@ -16,7 +16,7 @@
         public string City { get; set; } = string.Empty;
 
         public string LicenseType { get; set; } = string.Empty;
-        
+
     }
 }
 

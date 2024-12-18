@@ -29,6 +29,13 @@ namespace Anti_RecoilApplicationAPI.Models
 
         [Required]
         public string LicenseType { get; set; } = string.Empty;
+
+        public string AccountStatus { get; set; } = string.Empty;
+
+        public string LastUsedIPAddress { get; set; } = string.Empty;
+
+        public string ResetToken { get; set; } = string.Empty;
+        public DateTime? ResetTokenExpiry { get; set; }
     }
 
 

@@ -20,7 +20,7 @@ namespace Anti_RecoilApplicationAPI.Services
                 .Select(w => new WeaponDTO
                 {
                     WeaponName = w.WeaponName,
-                    FireRate = w.FireRate,
+                    Sensitivity = w.Sensitivity,
                     Pattern = w.Pattern
                 }).ToListAsync();
         }
@@ -38,7 +38,7 @@ namespace Anti_RecoilApplicationAPI.Services
             return new WeaponDTO
             {
                 WeaponName = foundWeapon.WeaponName,
-                FireRate = foundWeapon.FireRate,
+                Sensitivity = foundWeapon.Sensitivity,
                 Pattern = foundWeapon.Pattern
             };
         }
@@ -57,7 +57,7 @@ namespace Anti_RecoilApplicationAPI.Services
             var weapon = new Weapon
             {
                 WeaponName = createWeaponDto.WeaponName,
-                FireRate = createWeaponDto.FireRate,
+                Sensitivity = createWeaponDto.Sensitivity,
                 Pattern = createWeaponDto.Pattern
             };
 
@@ -67,7 +67,7 @@ namespace Anti_RecoilApplicationAPI.Services
             return new WeaponDTO
             {
                 WeaponName = weapon.WeaponName,
-                FireRate = weapon.FireRate,
+                Sensitivity = weapon.Sensitivity,
                 Pattern = weapon.Pattern
             };
         }

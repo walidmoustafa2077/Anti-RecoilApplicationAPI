@@ -3,7 +3,7 @@
     public class WeaponDTO
     {
         public string WeaponName { get; set; } = string.Empty;
-        public float FireRate { get; set; }
+        public float Sensitivity { get; set; }
         public string Pattern { get; set; } = string.Empty;
     }
 }

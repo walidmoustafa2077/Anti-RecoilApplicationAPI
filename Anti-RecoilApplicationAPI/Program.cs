@@ -22,6 +22,7 @@ namespace Anti_RecoilApplicationAPI
 
             // Dependency Injection for Services
             builder.Services.AddScoped<IAuthentication, AuthenticationService>();
+            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IWeaponService, WeaponService>();
 
 

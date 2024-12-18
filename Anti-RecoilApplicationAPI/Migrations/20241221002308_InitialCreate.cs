@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -8,6 +9,10 @@ namespace Anti_RecoilApplicationAPI.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("DROP TABLE IF EXISTS [Users];");
+            migrationBuilder.Sql("DROP TABLE IF EXISTS [Weapons];");
+
+
             migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
@@ -25,7 +30,11 @@ namespace Anti_RecoilApplicationAPI.Migrations
                     Country = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     State = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     City = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LicenseType = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    LicenseType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AccountStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastUsedIPAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ResetToken = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ResetTokenExpiry = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -39,7 +48,7 @@ namespace Anti_RecoilApplicationAPI.Migrations
                     WeaponId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     WeaponName = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    FireRate = table.Column<float>(type: "real", nullable: false),
+                    Sensitivity = table.Column<float>(type: "real", nullable: false),
                     Pattern = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>

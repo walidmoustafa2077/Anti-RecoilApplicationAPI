@@ -10,6 +10,7 @@ namespace Anti_RecoilApplicationAPI.Services
         Task<UserDTO> UpdateUserAsync(int userId, UserDTO userDto);
         Task<bool> DeleteUserAsync(int userId);
         Task<UserDTO> GetUserByIdAsync(int userId);
-        Task<IEnumerable<UserDTO>> GetAllUsersAsync();
+        Task<IEnumerable<UserDTO>> GetAllUserDTOsAsync();
+        Task<IEnumerable<User>> GetAllUsersAsync();
     }
 }
