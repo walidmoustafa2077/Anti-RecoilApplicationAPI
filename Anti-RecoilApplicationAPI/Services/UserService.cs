@@ -16,14 +16,14 @@ namespace Anti_RecoilApplicationAPI.Services
             _context = context;
         }
 
-        public async Task<UserDTO> CreateUserAsync(User user)
+        public async Task<UserDTO> CreateUserAsync(UserDTO user)
         {
 
             // Map the DTO to the User model
             user.PasswordHash = PasswordHelper.HashPassword(user.PasswordHash); // Make sure to implement this
 
             // Add the user to the database
-            _context.Users.Add(user);
+            _context.Users.Add(user.Adapt<User>());
             await _context.SaveChangesAsync();
 
             return user.Adapt<UserDTO>();

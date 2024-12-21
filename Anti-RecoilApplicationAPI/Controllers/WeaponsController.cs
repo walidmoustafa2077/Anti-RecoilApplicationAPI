@@ -1,5 +1,6 @@
 ﻿using Anti_RecoilApplicationAPI.DTOs;
 using Anti_RecoilApplicationAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Anti_RecoilApplicationAPI.Controllers
@@ -16,6 +17,7 @@ namespace Anti_RecoilApplicationAPI.Controllers
         }
 
         // GET: api/weapons
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<List<WeaponDTO>>> GetWeapons()
         {

@@ -4,6 +4,7 @@ using Anti_RecoilApplicationAPI.Enums;
 using Anti_RecoilApplicationAPI.Helpers;
 using Anti_RecoilApplicationAPI.Models;
 using Mapster;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace Anti_RecoilApplicationAPI.Services
@@ -17,41 +18,30 @@ namespace Anti_RecoilApplicationAPI.Services
             _context = context;
         }
 
-        public async Task<UserDTO> RegisterUserAsync(
-            string firstName,
-            string lastName,
-            string username,
-            string email,
-            string password,
-            string retypedPassword,
-            string? gender = null,
-            DateTime? dateOfBirth = null,
-            string? country = null,
-            string? state = null,
-            string? city = null)
+        public async Task<UserDTO> RegisterUserAsync(RegisterUserRequest registerUserRequest)
         {
-            if (password != retypedPassword)
+            if (registerUserRequest.Password != registerUserRequest.RetypedPassword)
                 throw new InvalidOperationException("Passwords do not match.");
 
-            if (await _context.Users.AnyAsync(u => u.Username == username || u.Email == email))
+            if (await _context.Users.AnyAsync(u => u.Username == registerUserRequest.Username || u.Email == registerUserRequest.Email))
                 throw new InvalidOperationException("Username or email is already taken.");
 
-            var hashedPassword = PasswordHelper.HashPassword(password);
+            var hashedPassword = PasswordHelper.HashPassword(registerUserRequest.Password);
+            
+            
+            var newUser = registerUserRequest.Adapt<User>();
 
-            var newUser = new User
+            newUser.PasswordHash = hashedPassword;
+
+    
+            
+            if (newUser.Role is "Admin" or "admin")
+                newUser.LicenseType = "Pro";
+            else
             {
-                FirstName = firstName,
-                LastName = lastName,
-                Username = username,
-                Email = email,
-                PasswordHash = hashedPassword,
-                Gender = gender ?? "",
-                DateOfBirth = dateOfBirth != null ? dateOfBirth.Value.ToString("MM/dd/yyyy") : DateTime.Now.ToString("MM/dd/yyyy"),
-                Country = country ?? "",
-                State = state ?? "",
-                City = city ?? "",
-                LicenseType = "Free Trial"
-            };
+                newUser.LicenseType = "Free";
+                newUser.EndTrialDate = DateTime.UtcNow.AddHours(3);
+            }
 
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
@@ -59,30 +49,30 @@ namespace Anti_RecoilApplicationAPI.Services
             return newUser.Adapt<UserDTO>();
         }
 
-        public async Task<string> LoginAsync(string usernameOrEmail, string password)
+        public async Task<string> LoginAsync(LoginRequest loginRequest)
         {
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == usernameOrEmail || u.Email == usernameOrEmail);
+                .FirstOrDefaultAsync(u => u.Username == loginRequest.UsernameOrEmail || u.Email == loginRequest.UsernameOrEmail);
 
-            if (user == null || !PasswordHelper.VerifyPassword(password, user.PasswordHash))
+            if (user == null || !PasswordHelper.VerifyPassword(loginRequest.Password, user.PasswordHash))
                 throw new UnauthorizedAccessException("Invalid username or password.");
 
             // You can generate a JWT token here if needed (or any other token logic).
             return "Login successful"; // Replace with token if implemented.
         }
 
-        public async Task<bool> ForgetPasswordAsync(string usernameOrEmail, string newPassword, string retypedPassword)
+        public async Task<bool> ForgetPasswordAsync(ForgetPasswordRequest forgetPasswordRequest)
         {
-            if (newPassword != retypedPassword)
+            if (forgetPasswordRequest.NewPassword != forgetPasswordRequest.RetypedPassword)
                 throw new InvalidOperationException("Passwords do not match.");
 
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == usernameOrEmail || u.Email == usernameOrEmail);
+                .FirstOrDefaultAsync(u => u.Username == forgetPasswordRequest.UsernameOrEmail || u.Email == forgetPasswordRequest.UsernameOrEmail);
 
             if (user == null)
                 throw new InvalidOperationException("User not found.");
 
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(forgetPasswordRequest.NewPassword);
             await _context.SaveChangesAsync();
 
             return true;
@@ -124,7 +114,9 @@ namespace Anti_RecoilApplicationAPI.Services
                     user.Gender = newValue;
                     break;
                 case UpdateUserOption.DateOfBirth:
-                    user.DateOfBirth = DateTime.Parse(newValue).ToString("MM/dd/yyyy");
+                    DateTime date;
+                    DateTime.TryParse(newValue, out date);
+                    user.DateOfBirth = date;
                     break;
                 case UpdateUserOption.Country:
                     user.Country = newValue;
@@ -146,17 +138,17 @@ namespace Anti_RecoilApplicationAPI.Services
             return user.Adapt<UserDTO>();
         }
 
-        public async Task<bool> RemoveUserAsync(string usernameOrEmail, string password)
+        public async Task<bool> RemoveUserAsync(LoginRequest loginRequest)
         {
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == usernameOrEmail || u.Email == usernameOrEmail);
+                .FirstOrDefaultAsync(u => u.Username == loginRequest.UsernameOrEmail || u.Email == loginRequest.Password);
 
             if (user == null)
             {
                 throw new InvalidOperationException("User not found.");
             }
 
-            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            if (!BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.PasswordHash))
             {
                 throw new InvalidOperationException("Invalid password.");
             }

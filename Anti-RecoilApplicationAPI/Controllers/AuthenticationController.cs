@@ -1,6 +1,8 @@
 ﻿using Anti_RecoilApplicationAPI.DTOs;
 using Anti_RecoilApplicationAPI.Enums;
+using Anti_RecoilApplicationAPI.Helpers;
 using Anti_RecoilApplicationAPI.Services;
+using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -12,14 +14,13 @@ namespace Anti_RecoilApplicationAPI.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IAuthentication _authenticationService;
-        private readonly IUserService _userService;
+
         private readonly IWeaponService _weaponService;
 
-        public AuthenticationController(IAuthentication authenticationService, IUserService userService,IWeaponService weaponService)
+        public AuthenticationController(IAuthentication authenticationService, IWeaponService weaponService)
         {
             _authenticationService = authenticationService;
             _weaponService = weaponService;
-            _userService = userService;
         }
 
         // Register User
@@ -30,19 +31,7 @@ namespace Anti_RecoilApplicationAPI.Controllers
             try
             {
                 // Register the user using the service
-                var userDto = await _authenticationService.RegisterUserAsync(
-                    request.FirstName,
-                    request.LastName,
-                    request.Username,
-                    request.Email,
-                    request.Password,
-                    request.RetypedPassword,
-                    request.Gender,
-                    request.DateOfBirth,
-                    request.Country,
-                    request.State,
-                    request.City
-                );
+                var userDto = await _authenticationService.RegisterUserAsync(request.Adapt<RegisterUserRequest>());
 
                 return Ok(userDto); // Return user DTO after successful registration
             }
@@ -52,32 +41,29 @@ namespace Anti_RecoilApplicationAPI.Controllers
             }
         }
 
-        // Login User
         [HttpPost("login")]
         public async Task<ActionResult<string>> LoginAsync([FromBody] LoginRequest request)
         {
             try
             {
-                // Call the login service method
-                var token = await _authenticationService.LoginAsync(
-                    request.UsernameOrEmail,
-                    request.Password
-                );
+                var user = await _authenticationService.LoginAsync(request);
 
-                var weapons = await _weaponService.GetWeaponsAsync();
-
-                // Return token and weapons in the response
-                return Ok(new
+                if (user == null)
                 {
-                    Token = token,
-                    Weapons = weapons
-                });
+                    return Unauthorized("Invalid credentials");
+                }
+
+
+                return Ok(new { Token = user });
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
-                return Unauthorized(ex.Message); // Return unauthorized if login fails
+                // Log the error (you can use ILogger instead of Console)
+                Console.WriteLine($"Login failed: {ex.Message}");
+                return StatusCode(500, "Internal server error");
             }
         }
+
 
         // Forget Password
         [HttpPost("forget-password")]
@@ -86,11 +72,7 @@ namespace Anti_RecoilApplicationAPI.Controllers
             try
             {
                 // Call the forget password service method
-                var result = await _authenticationService.ForgetPasswordAsync(
-                    request.UsernameOrEmail,
-                    request.NewPassword,
-                    request.RetypedPassword
-                );
+                var result = await _authenticationService.ForgetPasswordAsync(request.Adapt<ForgetPasswordRequest>());
 
                 return result ? Ok("Password updated successfully.") : BadRequest("Password update failed.");
             }
@@ -130,10 +112,7 @@ namespace Anti_RecoilApplicationAPI.Controllers
             try
             {
                 // Call the remove user service method
-                var result = await _authenticationService.RemoveUserAsync(
-                    request.UsernameOrEmail,
-                    request.Password
-                );
+                var result = await _authenticationService.RemoveUserAsync(request.Adapt<LoginRequest>());
 
                 return result ? Ok("User removed successfully.") : BadRequest("User removal failed.");
             }

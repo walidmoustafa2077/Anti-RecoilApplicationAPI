@@ -4,6 +4,7 @@ using Anti_RecoilApplicationAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Anti_RecoilApplicationAPI.Migrations
 {
     [DbContext(typeof(AntiRecoilDbContext))]
-    partial class AntiRecoilDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241222200820_InitialCreateV3")]
+    partial class InitialCreateV3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
