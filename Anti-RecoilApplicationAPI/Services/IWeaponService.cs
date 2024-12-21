@@ -7,6 +7,8 @@ namespace Anti_RecoilApplicationAPI.Services
         Task<List<WeaponDTO>> GetWeaponsAsync();
         Task<WeaponDTO> GetWeaponByNameAsync(string weaponName);
         Task<WeaponDTO> CreateWeaponAsync(WeaponDTO createWeaponDto);
+        Task<WeaponDTO> UpdateWeaponAsync(string weaponName, WeaponDTO updateWeaponDto);
+
         Task<bool> DeleteWeaponAsync(string weaponName);
     }
 }

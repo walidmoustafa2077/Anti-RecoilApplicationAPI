@@ -1,6 +1,7 @@
 ﻿using Anti_RecoilApplicationAPI.Data;
 using Anti_RecoilApplicationAPI.DTOs;
 using Anti_RecoilApplicationAPI.Models;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace Anti_RecoilApplicationAPI.Services
@@ -24,7 +25,6 @@ namespace Anti_RecoilApplicationAPI.Services
                     Pattern = w.Pattern
                 }).ToListAsync();
         }
-
         public async Task<WeaponDTO> GetWeaponByNameAsync(string weaponName)
         {
             // Fetch all weapons and perform case-insensitive comparison in memory
@@ -71,6 +71,23 @@ namespace Anti_RecoilApplicationAPI.Services
                 Pattern = weapon.Pattern
             };
         }
+
+        public async Task<WeaponDTO> UpdateWeaponAsync(string weaponName, WeaponDTO updateWeaponDto)
+        {
+            var existingWeapon = await _context.Weapons.FirstOrDefaultAsync(w => w.WeaponName == weaponName);
+
+            if (existingWeapon == null)
+                return null;
+
+            existingWeapon.Sensitivity = updateWeaponDto.Sensitivity;
+            existingWeapon.Pattern = updateWeaponDto.Pattern;
+
+            _context.Update(existingWeapon);
+            await _context.SaveChangesAsync();
+
+            return existingWeapon.Adapt<WeaponDTO>(); // Assuming you are using AutoMapper or map manually
+        }
+
 
         public async Task<bool> DeleteWeaponAsync(string weaponName)
         {

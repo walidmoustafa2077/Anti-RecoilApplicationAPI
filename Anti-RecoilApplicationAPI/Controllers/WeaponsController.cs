@@ -55,6 +55,27 @@ namespace Anti_RecoilApplicationAPI.Controllers
             return CreatedAtAction(nameof(GetWeaponByName), new { weaponName = weapon.WeaponName }, weapon);
         }
 
+        // PUT: api/weapons/{weaponName}
+        [HttpPut("{weaponName}")]
+        public async Task<ActionResult<WeaponDTO>> UpdateWeapon(string weaponName, WeaponDTO updateWeaponDto)
+        {
+            Console.WriteLine($"PUT Request received for: {weaponName}");
+
+            // Check if the pattern contains newline characters and handle them.
+            if (updateWeaponDto.Pattern.Contains("\n") || updateWeaponDto.Pattern.Contains("\r"))
+            {
+                // If the input contains newlines, perform the conversion
+                updateWeaponDto.Pattern = updateWeaponDto.Pattern.Replace("\n", ",").Replace("\r", "").TrimEnd(',');
+            }
+
+            var updatedWeapon = await _weaponService.UpdateWeaponAsync(weaponName, updateWeaponDto);
+
+            if (updatedWeapon == null)
+                return NotFound($"Weapon with name '{weaponName}' not found.");
+
+            return Ok(updatedWeapon);
+        }
+
 
         // DELETE: api/weapons/{weaponName}
         [HttpDelete("{weaponName}")]
