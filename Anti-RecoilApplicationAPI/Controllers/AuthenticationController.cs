@@ -1,11 +1,8 @@
 ﻿using Anti_RecoilApplicationAPI.DTOs;
-using Anti_RecoilApplicationAPI.Enums;
-using Anti_RecoilApplicationAPI.Helpers;
 using Anti_RecoilApplicationAPI.Services;
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace Anti_RecoilApplicationAPI.Controllers
 {
@@ -42,7 +39,7 @@ namespace Anti_RecoilApplicationAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> LoginAsync([FromBody] LoginRequest request)
+        public async Task<ActionResult<LoginResponseDTO>> LoginAsync([FromBody] LoginRequest request)
         {
             try
             {
@@ -54,7 +51,7 @@ namespace Anti_RecoilApplicationAPI.Controllers
                 }
 
 
-                return Ok(new { Token = user });
+                return Ok(new LoginResponseDTO { Token = user.Token });
             }
             catch (Exception ex)
             {
@@ -83,6 +80,8 @@ namespace Anti_RecoilApplicationAPI.Controllers
         }
 
         // Update User Information
+
+        [Authorize]
         [HttpPut("update")]
         public async Task<ActionResult<UserDTO>> UpdateUserAsync(
             [FromBody] UpdateUserRequest request)
@@ -106,6 +105,7 @@ namespace Anti_RecoilApplicationAPI.Controllers
         }
 
         // Remove User
+        [Authorize]
         [HttpDelete("remove")]
         public async Task<ActionResult> RemoveUserAsync([FromBody] RemoveUserRequest request)
         {

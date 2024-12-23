@@ -33,7 +33,7 @@ namespace Anti_RecoilApplicationAPI.Services
 
             var foundWeapon = weapon.FirstOrDefault(w => w.WeaponName.Equals(weaponName, StringComparison.OrdinalIgnoreCase));
 
-            if (foundWeapon == null) return null;
+            if (foundWeapon == null) return new WeaponDTO();
 
             return new WeaponDTO
             {
@@ -52,24 +52,14 @@ namespace Anti_RecoilApplicationAPI.Services
             var existingWeapon = weapons
                 .Any(w => w.WeaponName.Equals(createWeaponDto.WeaponName, StringComparison.OrdinalIgnoreCase));
 
-            if (existingWeapon) return null; // Return null if weapon already exists
+            if (existingWeapon) return createWeaponDto; // Return null if weapon already exists
 
-            var weapon = new Weapon
-            {
-                WeaponName = createWeaponDto.WeaponName,
-                Sensitivity = createWeaponDto.Sensitivity,
-                Pattern = createWeaponDto.Pattern
-            };
+            var weapon = createWeaponDto.Adapt<Weapon>();
 
             _context.Weapons.Add(weapon);
             await _context.SaveChangesAsync();
 
-            return new WeaponDTO
-            {
-                WeaponName = weapon.WeaponName,
-                Sensitivity = weapon.Sensitivity,
-                Pattern = weapon.Pattern
-            };
+            return weapon.Adapt<WeaponDTO>();
         }
 
         public async Task<WeaponDTO> UpdateWeaponAsync(string weaponName, WeaponDTO updateWeaponDto)
@@ -77,7 +67,7 @@ namespace Anti_RecoilApplicationAPI.Services
             var existingWeapon = await _context.Weapons.FirstOrDefaultAsync(w => w.WeaponName == weaponName);
 
             if (existingWeapon == null)
-                return null;
+                return new WeaponDTO();
 
             existingWeapon.Sensitivity = updateWeaponDto.Sensitivity;
             existingWeapon.Pattern = updateWeaponDto.Pattern;

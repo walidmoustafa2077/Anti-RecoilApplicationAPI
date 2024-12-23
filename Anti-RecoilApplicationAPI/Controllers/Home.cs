@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Anti_RecoilApplicationAPI.Controllers
 {
@@ -14,6 +15,7 @@ namespace Anti_RecoilApplicationAPI.Controllers
         }
 
         // POST: api/home
+        [Authorize]
         [HttpPost]
         public IActionResult PostData([FromBody] object data)
         {

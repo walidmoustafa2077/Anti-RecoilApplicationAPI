@@ -4,7 +4,6 @@ using Anti_RecoilApplicationAPI.Enums;
 using Anti_RecoilApplicationAPI.Helpers;
 using Anti_RecoilApplicationAPI.Models;
 using Mapster;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace Anti_RecoilApplicationAPI.Services
@@ -12,10 +11,12 @@ namespace Anti_RecoilApplicationAPI.Services
     public class AuthenticationService : IAuthentication
     {
         private readonly AntiRecoilDbContext _context;
+        private readonly TokenService _tokenService;
 
-        public AuthenticationService(AntiRecoilDbContext context)
+        public AuthenticationService(AntiRecoilDbContext context, TokenService tokenService)
         {
             _context = context;
+            _tokenService = tokenService;
         }
 
         public async Task<UserDTO> RegisterUserAsync(RegisterUserRequest registerUserRequest)
@@ -27,18 +28,19 @@ namespace Anti_RecoilApplicationAPI.Services
                 throw new InvalidOperationException("Username or email is already taken.");
 
             var hashedPassword = PasswordHelper.HashPassword(registerUserRequest.Password);
-            
-            
+
+
             var newUser = registerUserRequest.Adapt<User>();
 
             newUser.PasswordHash = hashedPassword;
 
-    
-            
+
+
             if (newUser.Role is "Admin" or "admin")
                 newUser.LicenseType = "Pro";
             else
             {
+                newUser.Role = "User";
                 newUser.LicenseType = "Free";
                 newUser.EndTrialDate = DateTime.UtcNow.AddHours(3);
             }
@@ -49,7 +51,7 @@ namespace Anti_RecoilApplicationAPI.Services
             return newUser.Adapt<UserDTO>();
         }
 
-        public async Task<string> LoginAsync(LoginRequest loginRequest)
+        public async Task<LoginResponseDTO> LoginAsync(LoginRequest loginRequest)
         {
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username == loginRequest.UsernameOrEmail || u.Email == loginRequest.UsernameOrEmail);
@@ -57,9 +59,16 @@ namespace Anti_RecoilApplicationAPI.Services
             if (user == null || !PasswordHelper.VerifyPassword(loginRequest.Password, user.PasswordHash))
                 throw new UnauthorizedAccessException("Invalid username or password.");
 
-            // You can generate a JWT token here if needed (or any other token logic).
-            return "Login successful"; // Replace with token if implemented.
+            // Generate the JWT token
+            var token = _tokenService.GenerateToken(user.Username, user.Role);
+
+            // Return just the token string
+            return new LoginResponseDTO 
+                {
+                    Token = token
+                };
         }
+
 
         public async Task<bool> ForgetPasswordAsync(ForgetPasswordRequest forgetPasswordRequest)
         {

@@ -1,6 +1,9 @@
 using Anti_RecoilApplicationAPI.Data;
 using Anti_RecoilApplicationAPI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Anti_RecoilApplicationAPI
 {
@@ -11,34 +14,45 @@ namespace Anti_RecoilApplicationAPI
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
             builder.Services.AddControllers();
-            builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             // Configure Database Context
             builder.Services.AddDbContext<AntiRecoilDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // Dependency Injection for Services
-            builder.Services.AddScoped<IAuthentication, AuthenticationService>();
-            builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<IWeaponService, WeaponService>();
 
-
-            builder.Services.AddCors(options =>
+            // Add JWT Authentication
+            builder.Services.AddAuthentication(options =>
             {
-                options.AddPolicy("AllowAll",
-                    builder => builder.AllowAnyOrigin()
-                                      .AllowAnyMethod()
-                                      .AllowAnyHeader());
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
+                };
+
             });
 
 
 
-            var app = builder.Build();
+            // Dependency Injection for Services
+            builder.Services.AddScoped<IAuthentication, AuthenticationService>();
+            builder.Services.AddScoped<TokenService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IWeaponService, WeaponService>();
 
-            app.UseCors("AllowAll");  // Enable CORS
+
+            var app = builder.Build();
 
 
             // Configure the HTTP request pipeline.
@@ -48,16 +62,18 @@ namespace Anti_RecoilApplicationAPI
 
                 app.UseSwagger();
                 app.UseSwaggerUI();
+
             }
 
+            app.UseRouting();
 
-            app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
-
-            app.MapControllers();
-
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
             app.Run();
         }
 
