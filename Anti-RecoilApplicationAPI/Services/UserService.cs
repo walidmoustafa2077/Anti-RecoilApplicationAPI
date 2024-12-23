@@ -4,6 +4,7 @@ using Anti_RecoilApplicationAPI.Helpers;
 using Anti_RecoilApplicationAPI.Models;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Anti_RecoilApplicationAPI.Services
 {
@@ -28,7 +29,6 @@ namespace Anti_RecoilApplicationAPI.Services
 
             return user.Adapt<UserDTO>();
         }
-
 
         public async Task<UserDTO> UpdateUserAsync(int userId, UserDTO userDto)
         {
@@ -77,7 +77,6 @@ namespace Anti_RecoilApplicationAPI.Services
             return users.Adapt<IEnumerable<UserDTO>>();
         }
 
-
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             var users = await _context.Users.ToListAsync();
@@ -86,5 +85,42 @@ namespace Anti_RecoilApplicationAPI.Services
             return users;
         }
 
+        public async Task<UserDTO> GetCurrentUserAsync(ClaimsPrincipal user)
+        {
+            if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
+                return null; // If user is not authenticated, return null
+
+            // Extract user identifier from claims, usually the username or user ID is stored in claims
+            var usernameOrEmail = user.FindFirst(ClaimTypes.NameIdentifier)?.Value; // 'sub' claim
+
+            if (string.IsNullOrEmpty(usernameOrEmail))
+                return null; // If no username or email found, return null
+
+            // Fetch user data from the repository based on the extracted username or email
+            var userEntity = await GetUserByUsernameOrEmailAsync(usernameOrEmail);
+
+            if (userEntity == null)
+                return null; // Return null if the user does not exist in the database
+
+            // Return a UserDTO object (DTO would contain user details like username, role, license type, etc.)
+            return new UserDTO
+            {
+                Username = userEntity.Username,
+                Role = userEntity.Role,
+                LicenseType = userEntity.LicenseType,
+                EndTrialDate = userEntity.EndTrialDate
+                // Add other properties as needed
+            };
+        }
+
+        public async Task<UserDTO> GetUserByUsernameOrEmailAsync(string usernameOrEmail)
+        {
+            // Query to find the user by either username or email (case-insensitive)
+            var user = await _context.Users
+                .Where(u => u.Username == usernameOrEmail || u.Email == usernameOrEmail)
+                .FirstOrDefaultAsync();
+
+            return user.Adapt<UserDTO>(); // Return the user if found, otherwise null
+        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Anti_RecoilApplicationAPI.DTOs;
 using Anti_RecoilApplicationAPI.Models;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace Anti_RecoilApplicationAPI.Services
 {
@@ -12,5 +12,6 @@ namespace Anti_RecoilApplicationAPI.Services
         Task<UserDTO> GetUserByIdAsync(int userId);
         Task<IEnumerable<UserDTO>> GetAllUserDTOsAsync();
         Task<IEnumerable<User>> GetAllUsersAsync();
+        Task<UserDTO> GetCurrentUserAsync(ClaimsPrincipal user);
     }
 }
