@@ -1,6 +1,4 @@
-﻿using Anti_RecoilApplicationAPI.Models;
-
-namespace Anti_RecoilApplicationAPI.Helpers
+﻿namespace Anti_RecoilApplicationAPI.Helpers
 {
     public class PasswordHelper
     {

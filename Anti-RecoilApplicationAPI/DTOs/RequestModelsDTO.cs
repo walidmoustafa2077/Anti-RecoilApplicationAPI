@@ -37,7 +37,7 @@ namespace Anti_RecoilApplicationAPI.DTOs
     // Request model for removing a user
     public class RemoveUserRequest
     {
-        public string UsernameOrEmail { get; set; } = string.Empty; 
+        public string UsernameOrEmail { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }
 

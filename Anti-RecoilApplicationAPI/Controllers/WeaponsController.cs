@@ -1,28 +1,48 @@
 ﻿using Anti_RecoilApplicationAPI.DTOs;
 using Anti_RecoilApplicationAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Anti_RecoilApplicationAPI.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class WeaponsController : ControllerBase
     {
         private readonly IWeaponService _weaponService;
+        private IUserService _userService;
 
-        public WeaponsController(IWeaponService weaponService)
+        public WeaponsController(IWeaponService weaponService, IUserService userService)
         {
             _weaponService = weaponService;
+            _userService = userService;
         }
 
         // GET: api/weapons
         [HttpGet]
         public async Task<ActionResult<List<WeaponDTO>>> GetWeapons()
         {
+
+            var user = await _userService.GetCurrentUserAsync(User); // Get current user from token
+            if (user == null)
+                return Unauthorized("User is not logged in.");
+
+            // If user is not admin, check LicenseType
+            if (user.Role != "Admin")
+            {
+                if (user.LicenseType == "Free" && user.EndTrialDate <= DateTime.UtcNow)
+                {
+                    return Unauthorized("Trial period expired.");
+                }
+            }
+
+            // Get weapons after validation
             var weapons = await _weaponService.GetWeaponsAsync();
             if (weapons == null || !weapons.Any())
                 return NotFound("No weapons found.");
-            return Ok(weapons);
+
+            return Ok(weapons); // Return weapons to the user
         }
 
         // GET: api/weapons/{weaponName}

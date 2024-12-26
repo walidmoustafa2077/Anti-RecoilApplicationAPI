@@ -20,7 +20,7 @@ namespace Anti_RecoilApplicationAPI.Models
         [Required]
         public string Role { get; set; } = string.Empty;
 
-        public string DateOfBirth { get; set; } = string.Empty;
+        public DateTime DateOfBirth { get; set; } = new DateTime(2024, 1, 1);
         public string Gender { get; set; } = string.Empty;
 
         public string Country { get; set; } = string.Empty;
@@ -29,6 +29,8 @@ namespace Anti_RecoilApplicationAPI.Models
 
         [Required]
         public string LicenseType { get; set; } = string.Empty;
+        public DateTime EndTrialDate { get; set; }
+
 
         public string AccountStatus { get; set; } = string.Empty;
 
