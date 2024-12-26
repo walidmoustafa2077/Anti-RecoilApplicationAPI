@@ -1,5 +1,6 @@
 ﻿using Anti_RecoilApplicationAPI.Data;
 using Anti_RecoilApplicationAPI.DTOs;
+using Anti_RecoilApplicationAPI.Enums;
 using Anti_RecoilApplicationAPI.Helpers;
 using Anti_RecoilApplicationAPI.Models;
 using Mapster;
@@ -30,31 +31,71 @@ namespace Anti_RecoilApplicationAPI.Services
             return user.Adapt<UserDTO>();
         }
 
-        public async Task<UserDTO> UpdateUserAsync(int userId, UserDTO userDto)
+        public async Task<UserDTO> UpdateUserAsync(int userId, UpdateUserOption option, string newValue)
         {
-            var user = await _context.Users.FindAsync(userId);
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.UserId == userId );
+
             if (user == null)
             {
-                throw new InvalidOperationException("User Don't Exists.");
+                throw new InvalidOperationException("User not found.");
             }
 
-            // Update user properties
-            user.FirstName = userDto.FirstName;
-            user.LastName = userDto.LastName;
-            user.DateOfBirth = userDto.DateOfBirth;
-            user.Gender = userDto.Gender;
-            user.Username = userDto.Username;
-            user.Email = userDto.Email;
-            user.LicenseType = userDto.LicenseType;
-
-            await _context.SaveChangesAsync();
+            switch (option)
+            {
+                case UpdateUserOption.FirstName:
+                    user.FirstName = newValue;
+                    await _context.SaveChangesAsync();
+                    break;
+                case UpdateUserOption.LastName:
+                    user.LastName = newValue;
+                    await _context.SaveChangesAsync();
+                    break;
+                case UpdateUserOption.Password:
+                    user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newValue);
+                    await _context.SaveChangesAsync();
+                    break;
+                case UpdateUserOption.Username:
+                    user.Username = newValue;
+                    await _context.SaveChangesAsync();
+                    break;
+                case UpdateUserOption.Email:
+                    user.Email = newValue;
+                    await _context.SaveChangesAsync();
+                    break;
+                case UpdateUserOption.Gender:
+                    user.Gender = newValue;
+                    await _context.SaveChangesAsync();
+                    break;
+                case UpdateUserOption.DateOfBirth:
+                    DateTime date;
+                    DateTime.TryParse(newValue, out date);
+                    user.DateOfBirth = date;
+                    await _context.SaveChangesAsync();
+                    break;
+                case UpdateUserOption.Country:
+                    user.Country = newValue;
+                    await _context.SaveChangesAsync();
+                    break;
+                case UpdateUserOption.State:
+                    user.State = newValue;
+                    await _context.SaveChangesAsync();
+                    break;
+                case UpdateUserOption.City:
+                    user.City = newValue;
+                    await _context.SaveChangesAsync();
+                    break;
+                case UpdateUserOption.LicenseType:
+                    user.LicenseType = newValue;
+                    await _context.SaveChangesAsync();
+                    break;
+            }
 
             return user.Adapt<UserDTO>();
         }
 
-        public async Task<bool> DeleteUserAsync(int userId)
+        public async Task<bool> DeleteUserAsync(User user)
         {
-            var user = await _context.Users.FindAsync(userId);
             if (user == null) return false; // Or throw exception if needed
 
             _context.Users.Remove(user);
@@ -113,7 +154,7 @@ namespace Anti_RecoilApplicationAPI.Services
             };
         }
 
-        public async Task<UserDTO> GetUserByUsernameOrEmailAsync(string usernameOrEmail)
+        public async Task<UserDTO> GetUserDTOByUsernameOrEmailAsync(string usernameOrEmail)
         {
             // Query to find the user by either username or email (case-insensitive)
             var user = await _context.Users
@@ -122,5 +163,16 @@ namespace Anti_RecoilApplicationAPI.Services
 
             return user.Adapt<UserDTO>(); // Return the user if found, otherwise null
         }
+
+        public async Task<User> GetUserByUsernameOrEmailAsync(string usernameOrEmail)
+        {
+            // Query to find the user by either username or email (case-insensitive)
+            var user = await _context.Users
+                .Where(u => u.Username == usernameOrEmail || u.Email == usernameOrEmail)
+                .FirstOrDefaultAsync();
+
+            return user; // Return the user if found, otherwise null
+        }
+
     }
 }

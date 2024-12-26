@@ -3,6 +3,7 @@ using Anti_RecoilApplicationAPI.Services;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Anti_RecoilApplicationAPI.Controllers
 {
@@ -23,12 +24,12 @@ namespace Anti_RecoilApplicationAPI.Controllers
         // Register User
         [HttpPost("register")]
         public async Task<ActionResult<UserDTO>> RegisterUserAsync(
-            [FromBody] RegisterUserRequest request)
+            [FromBody] RegisterUserRequestDTO request)
         {
             try
             {
                 // Register the user using the service
-                var userDto = await _authenticationService.RegisterUserAsync(request.Adapt<RegisterUserRequest>());
+                var userDto = await _authenticationService.RegisterUserAsync(request.Adapt<RegisterUserRequestDTO>());
 
                 return Ok(userDto); // Return user DTO after successful registration
             }
@@ -39,7 +40,7 @@ namespace Anti_RecoilApplicationAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<LoginResponseDTO>> LoginAsync([FromBody] LoginRequest request)
+        public async Task<ActionResult<LoginResponseDTO>> LoginAsync([FromBody] LoginRequestDTO request)
         {
             try
             {
@@ -64,12 +65,12 @@ namespace Anti_RecoilApplicationAPI.Controllers
 
         // Forget Password
         [HttpPost("forget-password")]
-        public async Task<ActionResult> ForgetPasswordAsync([FromBody] ForgetPasswordRequest request)
+        public async Task<ActionResult> ForgetPasswordAsync([FromBody] ForgetPasswordRequestDTO request)
         {
             try
             {
                 // Call the forget password service method
-                var result = await _authenticationService.ForgetPasswordAsync(request.Adapt<ForgetPasswordRequest>());
+                var result = await _authenticationService.ForgetPasswordAsync(request.Adapt<ForgetPasswordRequestDTO>());
 
                 return result ? Ok("Password updated successfully.") : BadRequest("Password update failed.");
             }
@@ -79,47 +80,30 @@ namespace Anti_RecoilApplicationAPI.Controllers
             }
         }
 
-        // Update User Information
-
+        [HttpPost("logout")]
         [Authorize]
-        [HttpPut("update")]
-        public async Task<ActionResult<UserDTO>> UpdateUserAsync(
-            [FromBody] UpdateUserRequest request)
+        public IActionResult Logout()
         {
             try
             {
-                // Call the update user service method
-                var userDto = await _authenticationService.UpdateUserAsync(
-                    request.UsernameOrEmail,
-                    request.Option,
-                    request.NewValue,
-                    request.Password
-                );
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                return Ok(userDto); // Return the updated user DTO
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return BadRequest("Invalid user ID.");
+                }
+
+                _authenticationService.RemoveToken(userId);
+
+                return Ok("User logged out successfully.");
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
-                return BadRequest(ex.Message); // Return error message if update fails
+                // Log the error (use ILogger for better logging)
+                Console.WriteLine($"Logout failed: {ex.Message}");
+                return StatusCode(500, "Internal server error");
             }
         }
 
-        // Remove User
-        [Authorize]
-        [HttpDelete("remove")]
-        public async Task<ActionResult> RemoveUserAsync([FromBody] RemoveUserRequest request)
-        {
-            try
-            {
-                // Call the remove user service method
-                var result = await _authenticationService.RemoveUserAsync(request.Adapt<LoginRequest>());
-
-                return result ? Ok("User removed successfully.") : BadRequest("User removal failed.");
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message); // Return error message if removal fails
-            }
-        }
     }
 }

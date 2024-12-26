@@ -8,10 +8,26 @@ namespace Anti_RecoilApplicationAPI.Services
     public class TokenService
     {
         private readonly IConfiguration _configuration;
+        private static readonly Dictionary<string, string> _tokenStore = new Dictionary<string, string>();
 
         public TokenService(IConfiguration configuration)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        }
+
+        public void AddToken(string userId, string token)
+        {
+            _tokenStore[userId] = token;
+        }
+
+        public void Remove(string userId)
+        {
+            _tokenStore.Remove(userId);
+        }
+
+        public bool IsTokenValid(string userId, string token)
+        {
+            return _tokenStore.TryGetValue(userId, out var storedToken) && storedToken == token;
         }
 
         public string GenerateToken(string username, string role)
