@@ -17,7 +17,7 @@ namespace Anti_RecoilApplicationAPI
             builder.Services.AddControllers();
             builder.Services.AddSwaggerGen();
 
-            // Configure Database Context
+                        // Configure Database Context
             builder.Services.AddDbContext<AntiRecoilDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
